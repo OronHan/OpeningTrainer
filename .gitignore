@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Environment variables
+.env
+
+# Build outputs
+dist/
+build/
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# User Data (exclude user uploaded PGNs to keep repo clean)
+files/*.pgn

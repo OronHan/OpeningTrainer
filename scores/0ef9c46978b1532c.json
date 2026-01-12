@@ -1,0 +1,62 @@
+{
+  "last_studied": 1768046531.166859,
+  "node_stats": {
+    "41e9f77e9aad7717": {
+      "last_trained": 1768044547.7482004,
+      "last_tested": 1768044579.962467,
+      "last_test_success": true
+    },
+    "d3bbcfdbce9b8ecb": {
+      "last_trained": 1768044652.0330405,
+      "last_tested": 1768044716.6830957,
+      "last_test_success": true
+    },
+    "1caeec496329bd2c": {
+      "last_trained": 1768044795.3312986,
+      "last_tested": 1768044870.2270153,
+      "last_test_success": true
+    },
+    "1cb6d6cf16347f88": {
+      "last_trained": 1768045064.9821403
+    },
+    "afd3db476a1984af": {
+      "last_trained": 1768045280.4470105,
+      "last_tested": 1768045443.8155148,
+      "last_test_success": false
+    },
+    "8817a77b11f09c4b": {
+      "last_trained": 1768045519.7164729,
+      "last_tested": 1768045598.3862395,
+      "last_test_success": true
+    },
+    "14d1c62931387818": {
+      "last_trained": 1768045683.8742478,
+      "last_tested": 1768045804.021137,
+      "last_test_success": true
+    },
+    "afe984bb6e66c44c": {
+      "last_trained": 1768045917.2985802,
+      "last_tested": 1768045982.197847,
+      "last_test_success": true
+    },
+    "37d0490f5aae90b5": {
+      "last_trained": 1768046052.9054596,
+      "last_tested": 1768046170.9487576,
+      "last_test_success": true
+    },
+    "db1ebc2ea9891650": {
+      "last_trained": 1768046235.3460681,
+      "last_tested": 1768046328.5062847,
+      "last_test_success": true
+    }
+  },
+  "last_tested": 1768046328.5057673,
+  "mistakes": [
+    {
+      "timestamp": 1768045440.6370304,
+      "fen": "r4rk1/5pbp/p1p3p1/2Pp4/3Pp1P1/7q/PP2N2N/R2Q1RK1 w - - 0 19",
+      "played": "d1d2",
+      "expected": "g1h1"
+    }
+  ]
+}
