@@ -3,9 +3,11 @@
 A web-based application designed to help chess players learn, practice, and test themselves on opening repertoires from PGN files.
 
 
-<img width="1015" height="478" alt="image" src="https://github.com/user-attachments/assets/fc36c601-9f32-4bb6-aff9-b08895095db1" />
+<img width="1694" height="1065" alt="image" src="https://github.com/user-attachments/assets/5b8204dc-775c-438d-a37a-fd7f9c2e1188" />
 
-<img width="1703" height="1068" alt="image" src="https://github.com/user-attachments/assets/6da1109b-8915-4edc-ba47-34bf6469843f" />
+<img width="993" height="469" alt="image" src="https://github.com/user-attachments/assets/cc4b4593-ef5e-4352-aa76-8eed43c32c6a" />
+
+<img width="426" height="661" alt="image" src="https://github.com/user-attachments/assets/d573142e-e37f-47d5-bd12-03753371017c" />
 
 
 
