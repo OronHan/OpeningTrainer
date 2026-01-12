@@ -2,8 +2,12 @@
 
 A web-based application designed to help chess players learn, practice, and test themselves on opening repertoires from PGN files.
 
-![Chess Opening Trainer Screenshot](placeholder.png)
-*(Suggestion: Replace placeholder.png with a screenshot of your application)*
+
+<img width="1015" height="478" alt="image" src="https://github.com/user-attachments/assets/fc36c601-9f32-4bb6-aff9-b08895095db1" />
+
+<img width="1703" height="1068" alt="image" src="https://github.com/user-attachments/assets/6da1109b-8915-4edc-ba47-34bf6469843f" />
+
+
 
 ## Features
 
@@ -15,6 +19,8 @@ A web-based application designed to help chess players learn, practice, and test
 *   **Dedicated Training Modules**:
     *   **Train**: A guided walkthrough of a specific variation. The application shows you the correct move to play.
     *   **Test**: A quiz mode where you must remember the moves for a variation. The app tracks your mistakes to help you identify weak spots.
+    *   **Practice Bot**: A dynamic mode that selects random lines for you to play against. It handles transpositions by switching lines if you play a valid alternative.
+    *   **Fix Errors**: A targeted session that helps you review and correct mistakes made in previous sessions.
 *   **Mistake Tracking**: The application logs mistakes made during tests, helping you focus your training on lines you struggle with.
 *   **User-Friendly Interface**: Flip the board, navigate between moves, and see comments from your PGN file.
 *   **Backend Support**: Comes with a Python backend to handle game logic, PGN parsing, and state management.
@@ -22,7 +28,7 @@ A web-based application designed to help chess players learn, practice, and test
 ## Technology Stack
 
 *   **Frontend**: React.js
-*   **Backend**: Python (likely FastAPI, given the dependencies)
+*   **Backend**: Python 
 *   **UI Components**: `react-chessboard` for the interactive board.
 
 ## Setup and Installation
@@ -100,3 +106,7 @@ The application should automatically open in your web browser at `http://localho
     *   Click the **"Variations"** tab to see a tree of all the opening lines.
     *   Find a line you want to practice and click the **"Train"** button. The app will guide you through the moves.
     *   Click the **"Test"** button to quiz yourself. The app will wait for your input and track any mistakes.
+7.  **Practice Bot**:
+    *   Click the **"Practice Bot"** tab to start a session with a random line. The bot adapts to your moves if you play valid alternatives.
+8.  **Fix Errors**:
+    *   Click the **"Fix Errors"** tab to specifically target and correct mistakes made in previous sessions.
