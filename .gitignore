@@ -22,4 +22,6 @@ Thumbs.db
 .idea/
 
 # User Data (exclude user uploaded PGNs to keep repo clean)
-files/*.pgn
+files/
+scores/
+course.json
