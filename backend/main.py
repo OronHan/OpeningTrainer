@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+import random
 import chess
 from typing import List
 from pydantic import BaseModel
@@ -37,11 +38,39 @@ class VariationNode(BaseModel):
     trained_today: bool = False
     tested_today: bool = False
 
+class PracticeStartRequest(BaseModel):
+    game_id: str
+    color: str
+
+class PracticeMoveResponse(BaseModel):
+    correct: bool
+    fen: str
+    san: str | None = None
+    bot_san: str | None = None
+    feedback: str
+    game_over: bool = False
+
 # Resolve recursive reference for Pydantic
 try:
     VariationNode.model_rebuild()
 except AttributeError:
     VariationNode.update_forward_refs()
+
+def get_random_path(course, start_node_id):
+    """Returns a list of node_ids representing a path from start_node to a leaf."""
+    path = [start_node_id]
+    current = start_node_id
+    # Safety limit to prevent infinite loops in case of circular references (though unlikely in trees)
+    for _ in range(200):
+        if current not in course.nodes:
+            break
+        node = course.nodes[current]
+        if not node.children:
+            break
+        next_id = random.choice(node.children)
+        path.append(next_id)
+        current = next_id
+    return path
 
 @app.get("/health")
 async def health_check():
@@ -80,6 +109,253 @@ async def select_game(game_id: str):
     store.session_comment_history = comment_history
     score_manager.update_last_studied(game_id)
     return SelectGameResponse(status="selected", game=store.courses[game_id].info, course=store.courses[game_id])
+
+@app.post("/practice/start", response_model=StateResponse)
+async def start_practice(req: PracticeStartRequest):
+    if req.game_id not in store.courses:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    store.current_course_id = req.game_id
+    store.reset_state()
+    
+    course = store.courses[req.game_id]
+    
+    # Pick a random line from root
+    store.practice_line = get_random_path(course, course.root_node)
+    store.practice_mistakes = 0
+    store.fixing_mistake = None
+    
+    # If user is Black, Bot (White) must play first move
+    if req.color == "black":
+        if len(store.practice_line) > 1:
+            next_node_id = store.practice_line[1]
+            next_node = course.nodes[next_node_id]
+            root_node = course.nodes[course.root_node]
+            
+            # Find SAN for the move
+            try:
+                idx = root_node.children.index(next_node_id)
+                bot_san = root_node.expected_moves[idx]
+                
+                # Apply move
+                store.current_node_id = next_node_id
+                store.session_history.append(next_node.fen)
+                store.session_san_history.append(bot_san)
+                store.session_comment_history.append(next_node.comment)
+                store.last_feedback = f"Bot played {bot_san}"
+            except ValueError:
+                pass
+
+    return await get_state()
+
+@app.post("/fix_errors/start", response_model=StateResponse)
+async def start_fix_errors(req: PracticeStartRequest):
+    if req.game_id not in store.courses:
+        raise HTTPException(status_code=404, detail="Game not found")
+    
+    store.current_course_id = req.game_id
+    store.reset_state()
+    course = store.courses[req.game_id]
+    
+    # 1. Get unresolved mistakes
+    mistakes = score_manager.get_unresolved_mistakes(req.game_id)
+    if not mistakes:
+        return StateResponse(
+            fen=store.get_current_node().fen,
+            side_to_move="white",
+            feedback="No errors to fix! Great job."
+        )
+    
+    # 2. Pick a mistake (e.g., the first one)
+    target_mistake = mistakes[0]
+    
+    # 3. Find the node corresponding to this mistake's FEN
+    target_node_id = None
+    for node in course.nodes.values():
+        # Simple FEN match (ignoring move clocks might be safer, but exact match for now)
+        if node.fen == target_mistake['fen']:
+            target_node_id = node.node_id
+            break
+    
+    if not target_node_id:
+        # If node not found (maybe PGN changed), skip this mistake (or handle gracefully)
+        # For now, just fallback to random
+        store.practice_line = get_random_path(course, course.root_node)
+        store.fixing_mistake = None
+        return await get_state()
+
+    # 4. Construct path: Root -> Mistake Node -> Random Leaf
+    path_to_mistake = store.find_path_to_node(req.game_id, target_node_id)
+    continuation = get_random_path(course, target_node_id)
+    # continuation includes target_node_id, so we slice it out to avoid duplicate
+    store.practice_line = path_to_mistake + continuation[1:]
+    store.fixing_mistake = target_mistake
+    
+    # 5. Auto-play moves up to the mistake point (handled by frontend usually, but we need to set state)
+    # Actually, we want the user to play from start or from the mistake?
+    # "go over every variation" implies playing the line.
+    # Let's start from root.
+    
+    # If user is Black, Bot (White) must play first move
+    if req.color == "black":
+        if len(store.practice_line) > 1:
+            next_node_id = store.practice_line[1]
+            next_node = course.nodes[next_node_id]
+            root_node = course.nodes[course.root_node]
+            try:
+                idx = root_node.children.index(next_node_id)
+                bot_san = root_node.expected_moves[idx]
+                store.current_node_id = next_node_id
+                store.session_history.append(next_node.fen)
+                store.session_san_history.append(bot_san)
+                store.session_comment_history.append(next_node.comment)
+                store.last_feedback = f"Bot played {bot_san}"
+            except ValueError:
+                pass
+
+    return await get_state()
+
+@app.post("/practice/move", response_model=PracticeMoveResponse)
+async def practice_move(move_req: MoveRequest):
+    current_node = store.get_current_node()
+    course = store.courses[store.current_course_id]
+    
+    # 1. Validate legality
+    is_legal, san_move, move_obj = validate_move(current_node.fen, move_req)
+    
+    if not is_legal:
+        return PracticeMoveResponse(correct=False, fen=current_node.fen, feedback="Illegal move")
+
+    # 2. Determine context in practice line
+    try:
+        current_idx = store.practice_line.index(current_node.node_id)
+    except (ValueError, AttributeError):
+        current_idx = -1
+        store.practice_line = [current_node.node_id] # Fallback
+
+    next_node_in_line_id = None
+    if current_idx != -1 and current_idx + 1 < len(store.practice_line):
+        next_node_in_line_id = store.practice_line[current_idx + 1]
+
+    # 3. Check if move is in repertoire (children of current node)
+    played_child_id = None
+    for i, move_str in enumerate(current_node.expected_moves):
+        if move_str == san_move:
+            played_child_id = current_node.children[i]
+            break
+    
+    if played_child_id:
+        # Move is valid in repertoire
+        
+        # Check if this move resolves the mistake we are fixing
+        if store.fixing_mistake:
+            # Check FEN and Expected Move
+            # We need the UCI of the move played
+            if current_node.fen == store.fixing_mistake['fen']:
+                # The user played 'san_move'. Is it the expected move?
+                # The mistake record stores 'expected' in UCI.
+                if move_obj.uci() == store.fixing_mistake['expected']:
+                    score_manager.resolve_mistake(store.current_course_id, store.fixing_mistake['fen'], store.fixing_mistake['expected'])
+                    # We don't clear store.fixing_mistake yet, just mark it resolved in DB
+        
+        # Check if it's an alternative (not the one in the current random line)
+        if played_child_id != next_node_in_line_id:
+            # Switch target line to follow this alternative
+            new_continuation = get_random_path(course, played_child_id)
+            # Splice: path up to current + new path from child
+            store.practice_line = store.practice_line[:current_idx+1] + new_continuation
+            # Note: new_continuation[0] is played_child_id
+        
+        # Apply User Move
+        store.current_node_id = played_child_id
+        played_node = course.nodes[played_child_id]
+        store.session_history.append(played_node.fen)
+        store.session_san_history.append(san_move)
+        store.session_comment_history.append(played_node.comment)
+        
+        # 4. Bot Reply
+        # We are now at played_child_id. Bot plays next move in practice_line.
+        # The index of played_child_id in the (potentially new) line is current_idx + 1
+        new_current_idx = current_idx + 1
+        
+        bot_san = None
+        game_over = False
+        feedback = f"Correct! {san_move}"
+        
+        if new_current_idx + 1 < len(store.practice_line):
+            bot_next_id = store.practice_line[new_current_idx + 1]
+            bot_next_node = course.nodes[bot_next_id]
+            
+            try:
+                idx = played_node.children.index(bot_next_id)
+                bot_san = played_node.expected_moves[idx]
+                
+                # Apply Bot Move
+                store.current_node_id = bot_next_id
+                store.session_history.append(bot_next_node.fen)
+                store.session_san_history.append(bot_san)
+                store.session_comment_history.append(bot_next_node.comment)
+                
+                feedback = f"Correct! Bot played {bot_san}"
+                
+                if new_current_idx + 1 == len(store.practice_line) - 1:
+                    game_over = True
+                    feedback += ". Line complete!"
+                    if getattr(store, "practice_mistakes", 0) == 0:
+                        score_manager.update_last_tested(store.current_course_id)
+                        score_manager.record_node_test(store.current_course_id, store.practice_line[-1], True)
+                    else:
+                        score_manager.record_node_training(store.current_course_id, store.practice_line[-1])
+            except ValueError:
+                feedback = "Error finding bot move"
+        else:
+            game_over = True
+            feedback = "Line complete!"
+            if getattr(store, "practice_mistakes", 0) == 0:
+                score_manager.update_last_tested(store.current_course_id)
+                score_manager.record_node_test(store.current_course_id, store.practice_line[-1], True)
+            else:
+                score_manager.record_node_training(store.current_course_id, store.practice_line[-1])
+            
+        return PracticeMoveResponse(
+            correct=True,
+            fen=store.get_current_node().fen,
+            san=san_move,
+            bot_san=bot_san,
+            feedback=feedback,
+            game_over=game_over
+        )
+
+    else:
+        # Incorrect move (not in repertoire)
+        if not hasattr(store, "practice_mistakes"):
+            store.practice_mistakes = 0
+        store.practice_mistakes += 1
+        
+        expected_san = "Unknown"
+        if next_node_in_line_id:
+            try:
+                idx = current_node.children.index(next_node_in_line_id)
+                expected_san = current_node.expected_moves[idx]
+                
+                # Record mistake
+                # We need UCI for expected move
+                board = chess.Board(current_node.fen)
+                expected_move_obj = board.parse_san(expected_san)
+                score_manager.record_mistake(
+                    store.current_course_id, 
+                    current_node.fen, 
+                    move_obj.uci(), 
+                    expected_move_obj.uci()
+                )
+            except:
+                pass
+        
+        return PracticeMoveResponse(
+            correct=False,
+            fen=current_node.fen,
+            feedback=f"Incorrect. Expected: {expected_san}"
+        )
 
 @app.post("/upload")
 async def upload_pgn(file: UploadFile = File(...)):
@@ -316,7 +592,7 @@ async def get_variations(game_id: str):
     
     # Load scores to calculate error counts
     scores = score_manager.load_score(game_id)
-    mistakes = scores.get("mistakes", [])
+    mistakes = [m for m in scores.get("mistakes", []) if not m.get('resolved', False)]
     mistake_counts = {}
     for m in mistakes:
         # Key is (fen, expected_move_uci)

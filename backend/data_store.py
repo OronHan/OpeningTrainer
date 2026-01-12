@@ -18,6 +18,7 @@ class DataStore:
         self.session_history: List[str] = []
         self.session_san_history: List[str] = []
         self.session_comment_history: List[Optional[str]] = []
+        self.fixing_mistake: Optional[dict] = None # {fen, expected}
 
     def load_course(self, pgn_content: str):
         from backend.chess_logic import parse_pgn_to_courses
@@ -76,13 +77,11 @@ class DataStore:
                 break
         return fen_history, san_history, comment_history
 
-    def navigate_to_node(self, node_id: str):
-        if not self.current_course_id:
-            return
+    def find_path_to_node(self, course_id: str, target_node_id: str) -> Optional[List[str]]:
+        if course_id not in self.courses:
+            return None
+        course = self.courses[course_id]
         
-        course = self.courses[self.current_course_id]
-        
-        # Helper to find path from root to target node
         def find_path(curr_id, target_id, current_path_nodes):
             if curr_id == target_id:
                 return current_path_nodes + [curr_id]
@@ -93,8 +92,15 @@ class DataStore:
                 if res:
                     return res
             return None
+            
+        return find_path(course.root_node, target_node_id, [])
 
-        path_node_ids = find_path(course.root_node, node_id, [])
+    def navigate_to_node(self, node_id: str):
+        if not self.current_course_id:
+            return
+        
+        course = self.courses[self.current_course_id]
+        path_node_ids = self.find_path_to_node(self.current_course_id, node_id)
         
         if path_node_ids:
             self.current_node_id = node_id

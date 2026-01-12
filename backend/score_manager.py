@@ -46,12 +46,29 @@ def record_mistake(game_id: str, fen: str, played: str, expected: str):
         'timestamp': time.time(),
         'fen': fen,
         'played': played,
-        'expected': expected
+        'expected': expected,
+        'resolved': False
     })
     save_score(game_id, data)
 
-def record_node_training(game_id: str, node_id: str):
+def resolve_mistake(game_id: str, fen: str, expected: str):
     data = load_score(game_id)
+    if 'mistakes' in data:
+        changed = False
+        for m in data['mistakes']:
+            if m.get('fen') == fen and m.get('expected') == expected and not m.get('resolved', False):
+                m['resolved'] = True
+                changed = True
+        if changed:
+            save_score(game_id, data)
+
+def get_unresolved_mistakes(game_id: str) -> list:
+    data = load_score(game_id)
+    return [m for m in data.get('mistakes', []) if not m.get('resolved', False)]
+
+def record_node_training(game_id: str, node_id: str):
+    save_score(game_id, data)
+
     if 'node_stats' not in data:
         data['node_stats'] = {}
     

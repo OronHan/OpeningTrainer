@@ -372,6 +372,202 @@ const TrainingView = ({ variation, userColor, gameId, onExit }) => {
   );
 };
 
+const PracticeView = ({ gameId, userColor, onExit }) => {
+  const [fen, setFen] = useState("start");
+  const [feedback, setFeedback] = useState("Initializing Practice Bot...");
+  const [isUserTurn, setIsUserTurn] = useState(false);
+  const [gameActive, setGameActive] = useState(true);
+  const [isCorrect, setIsCorrect] = useState(null);
+
+  const startSession = () => {
+    setGameActive(true);
+    setIsCorrect(null);
+    setFeedback("Initializing Practice Bot...");
+
+    fetch(`${API_URL}/practice/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, color: userColor })
+    })
+    .then(res => res.json())
+    .then(data => {
+        setFen(data.fen);
+        // Determine turn based on FEN
+        const turn = data.fen.split(' ')[1] === 'w' ? 'white' : 'black';
+        if (turn === userColor) {
+            setIsUserTurn(true);
+            setFeedback("Your turn");
+        } else {
+            // If it's not user turn, it means backend didn't play bot move yet?
+            // Or user is Black and backend played White's move, so it IS user turn now.
+            // If user is White, it is user turn.
+            // So it should always be user turn after init, unless game over.
+            setIsUserTurn(true); 
+            setFeedback(data.feedback || "Your turn");
+        }
+    })
+    .catch(err => setFeedback("Error starting practice"));
+  };
+
+  useEffect(() => {
+    startSession();
+  }, [gameId, userColor]);
+
+  const onDrop = async (source, target) => {
+      if (!gameActive || !isUserTurn) return false;
+      
+      try {
+        const res = await fetch(`${API_URL}/practice/move`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: source, to: target, promotion: 'q' })
+        });
+        const data = await res.json();
+        
+        setIsCorrect(data.correct);
+        setFeedback(data.feedback);
+
+        if (data.correct) {
+            setFen(data.fen); // Updates board with User move AND Bot move
+            
+            if (data.game_over) {
+                setGameActive(false);
+            } else {
+                setIsUserTurn(true);
+            }
+            return true;
+        } else {
+            return false;
+        }
+      } catch (e) {
+        setFeedback("Connection error");
+        return false;
+      }
+  };
+
+  return (
+    <div className="training-container">
+      <div className="training-header">
+        <h3>Practice Bot</h3>
+        <button onClick={onExit}>Exit Practice</button>
+      </div>
+      <div className="training-board-wrapper">
+        <Chessboard 
+          position={fen} 
+          onPieceDrop={onDrop} 
+          boardWidth={400} 
+          boardOrientation={userColor} 
+        />
+      </div>
+      <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
+        {feedback}
+      </div>
+      <div className="training-progress">
+        {gameActive ? "Playing..." : (
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+            <span>Session Complete</span>
+            <button onClick={startSession} className="action-btn test-btn" style={{fontSize: '1em', padding: '5px 10px'}}>New Session</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const FixErrorsView = ({ gameId, userColor, onExit }) => {
+  const [fen, setFen] = useState("start");
+  const [feedback, setFeedback] = useState("Loading errors...");
+  const [isUserTurn, setIsUserTurn] = useState(false);
+  const [gameActive, setGameActive] = useState(true);
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [noErrors, setNoErrors] = useState(false);
+
+  const startSession = () => {
+    setGameActive(true);
+    setIsCorrect(null);
+    setNoErrors(false);
+    setFeedback("Loading next error...");
+
+    fetch(`${API_URL}/fix_errors/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_id: gameId, color: userColor })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.feedback && data.feedback.includes("No errors")) {
+            setNoErrors(true);
+            setFeedback(data.feedback);
+            setGameActive(false);
+            return;
+        }
+        setFen(data.fen);
+        const turn = data.fen.split(' ')[1] === 'w' ? 'white' : 'black';
+        if (turn === userColor) {
+            setIsUserTurn(true);
+            setFeedback("Your turn");
+        } else {
+            setIsUserTurn(true); 
+            setFeedback(data.feedback || "Your turn");
+        }
+    })
+    .catch(err => setFeedback("Error starting session"));
+  };
+
+  useEffect(() => {
+    startSession();
+  }, [gameId, userColor]);
+
+  // Reuse the practice move logic
+  const onDrop = async (source, target) => {
+      if (!gameActive || !isUserTurn) return false;
+      // ... (Same logic as PracticeView, reusing the endpoint)
+      // We can actually just copy the onDrop from PracticeView or extract it.
+      // For brevity in this diff, I'll duplicate the simple fetch logic.
+      try {
+        const res = await fetch(`${API_URL}/practice/move`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: source, to: target, promotion: 'q' })
+        });
+        const data = await res.json();
+        setIsCorrect(data.correct);
+        setFeedback(data.feedback);
+        if (data.correct) {
+            setFen(data.fen);
+            if (data.game_over) setGameActive(false);
+            else setIsUserTurn(true);
+            return true;
+        } else {
+            return false;
+        }
+      } catch (e) { return false; }
+  };
+
+  return (
+    <div className="training-container">
+      <div className="training-header">
+        <h3>Fix Errors</h3>
+        <button onClick={onExit}>Exit</button>
+      </div>
+      <div className="training-board-wrapper">
+        {!noErrors && <Chessboard position={fen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />}
+      </div>
+      <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
+        {feedback}
+      </div>
+      <div className="training-progress">
+        {!gameActive && !noErrors && (
+          <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+            <span>Line Complete</span>
+            <button onClick={startSession} className="action-btn test-btn" style={{fontSize: '1em', padding: '5px 10px'}}>Next Error</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Recursive component to display variations tree
 const VariationTreeItem = ({ node, onTrain, onTest }) => {
   const [expanded, setExpanded] = useState(false);
@@ -503,7 +699,7 @@ function App() {
   const [course, setCourse] = useState(null);
   const [currentNodeId, setCurrentNodeId] = useState(null);
   const [orientation, setOrientation] = useState('white');
-  const [activeModule, setActiveModule] = useState('book'); // 'book' | 'variations'
+  const [activeModule, setActiveModule] = useState('book'); // 'book' | 'variations' | 'practice' | 'fix'
   const [trainingVariation, setTrainingVariation] = useState(null); // If set, shows TrainingView
   const [testVariation, setTestVariation] = useState(null); // If set, shows TestView
   const [trainingOrientation, setTrainingOrientation] = useState('white');
@@ -778,6 +974,18 @@ function App() {
           >
             Variations
           </button>
+          <button 
+            className={activeModule === 'practice' ? 'active-tab' : ''} 
+            onClick={() => setActiveModule('practice')}
+          >
+            Practice Bot
+          </button>
+          <button 
+            className={activeModule === 'fix' ? 'active-tab' : ''} 
+            onClick={() => setActiveModule('fix')}
+          >
+            Fix Errors
+          </button>
         </div>
         
         {activeModule === 'book' && (
@@ -839,6 +1047,28 @@ function App() {
             />
           ) : (
             <div className="empty-state">Please select a game from the sidebar to view variations.</div>
+          )
+        )}
+        {activeModule === 'practice' && (
+          course ? (
+            <PracticeView 
+              gameId={selectedGameId} 
+              userColor={trainingOrientation}
+              onExit={() => setActiveModule('book')}
+            />
+          ) : (
+            <div className="empty-state">Please select a game from the sidebar to start practice.</div>
+          )
+        )}
+        {activeModule === 'fix' && (
+          course ? (
+            <FixErrorsView 
+              gameId={selectedGameId} 
+              userColor={trainingOrientation}
+              onExit={() => setActiveModule('book')}
+            />
+          ) : (
+            <div className="empty-state">Please select a game from the sidebar to fix errors.</div>
           )
         )}
       </>
