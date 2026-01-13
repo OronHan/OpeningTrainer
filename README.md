@@ -68,8 +68,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # 4. Run the backend server
-# (Assuming the main file is `main.py` and the app instance is `app`)
-uvicorn main:app --reload --port 8000
+# The main application instance `app` is located in `backend/main.py`
+uvicorn backend.main:app --reload --port 8000
 ```
 
 The backend should now be running at `http://127.0.0.1:8000`.
