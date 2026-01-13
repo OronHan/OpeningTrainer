@@ -380,6 +380,8 @@ async def upload_pgn(file: UploadFile = File(...)):
 
 @app.post("/load_sample")
 async def load_sample():
+    # Clear existing courses to ensure we get a fresh state from the file
+    store.courses = {}
     # Re-trigger the startup logic
     await startup_event()
     return {"status": "success", "count": len(store.courses)}
