@@ -14,18 +14,18 @@ const API_URL = getApiUrl();
 
 // Import pieces directly. 
 // Use ?url to ensure we get the asset URL string, avoiding component imports if svgr is active.
-import wP from './public/pieces/wP.svg?url';
-import wN from './public/pieces/wN.svg?url';
-import wB from './public/pieces/wB.svg?url';
-import wR from './public/pieces/wR.svg?url';
-import wQ from './public/pieces/wQ.svg?url';
-import wK from './public/pieces/wK.svg?url';
-import bP from './public/pieces/bP.svg?url';
-import bN from './public/pieces/bN.svg?url';
-import bB from './public/pieces/bB.svg?url';
-import bR from './public/pieces/bR.svg?url';
-import bQ from './public/pieces/bQ.svg?url';
-import bK from './public/pieces/bK.svg?url';
+import wP from './assets/pieces/wP.svg?url';
+import wN from './assets/pieces/wN.svg?url';
+import wB from './assets/pieces/wB.svg?url';
+import wR from './assets/pieces/wR.svg?url';
+import wQ from './assets/pieces/wQ.svg?url';
+import wK from './assets/pieces/wK.svg?url';
+import bP from './assets/pieces/bP.svg?url';
+import bN from './assets/pieces/bN.svg?url';
+import bB from './assets/pieces/bB.svg?url';
+import bR from './assets/pieces/bR.svg?url';
+import bQ from './assets/pieces/bQ.svg?url';
+import bK from './assets/pieces/bK.svg?url';
 
 const pieceImages = {
   wP, wN, wB, wR, wQ, wK,
