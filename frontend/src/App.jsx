@@ -7,11 +7,11 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   // Check where the frontend is being served from
-  if (window.location.origin === "https://webopeningtrainer.onrender.com") {
-    return "https://openingtrainer.onrender.com";
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return "http://127.0.0.1:8000";
   }
-  // Default for local development (http://localhost:3000) and others
-  return "http://127.0.0.1:8000";
+  // Default for production (e.g. https://webopeningtrainer.onrender.com)
+  return "https://openingtrainer.onrender.com";
 };
 
 const API_URL = getApiUrl();
