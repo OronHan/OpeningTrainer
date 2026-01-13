@@ -1,14 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Chessboard } from 'react-chessboard'
 
-// Explicitly import the pieces that are known to work
-import wP from './public/pieces/wP.svg';
-import wQ from './public/pieces/wQ.svg';
-import wK from './public/pieces/wK.svg';
-import bP from './public/pieces/bP.svg';
-import bQ from './public/pieces/bQ.svg';
-import bK from './public/pieces/bK.svg';
-
 const getApiUrl = () => {
   // Check where the frontend is being served from
   if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
@@ -20,26 +12,22 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-// Use glob to find the other pieces dynamically to handle case sensitivity (wN.svg vs wn.svg)
-const globPieces = import.meta.glob('./public/pieces/*.svg', { eager: true, import: 'default' });
+// Use glob to find all pieces dynamically. 
+// query: { url: true } ensures we get the asset URL string, avoiding component imports.
+const pieceImports = import.meta.glob('./public/pieces/*.svg', { 
+  eager: true, 
+  import: 'default',
+  query: { url: true }
+});
 
-const getPiece = (name) => {
-  const key = Object.keys(globPieces).find(path => {
-    const fileName = path.split('/').pop();
-    return fileName.toLowerCase() === (name.toLowerCase() + '.svg');
-  });
-  return key ? globPieces[key] : null;
-};
-
-const pieceImages = {
-  wP, wQ, wK, bP, bQ, bK,
-  wN: getPiece('wN'),
-  wB: getPiece('wB'),
-  wR: getPiece('wR'),
-  bN: getPiece('bN'),
-  bB: getPiece('bB'),
-  bR: getPiece('bR'),
-};
+const pieceImages = {};
+for (const path in pieceImports) {
+  const fileName = path.split('/').pop().replace(/\.svg$/i, '');
+  if (fileName.length === 2) {
+    const key = fileName[0] + fileName[1].toUpperCase();
+    pieceImages[key] = pieceImports[path];
+  }
+}
 
 const customPieces = (() => {
   const pieces = ['wP', 'wN', 'wB', 'wR', 'wQ', 'wK', 'bP', 'bN', 'bB', 'bR', 'bQ', 'bK'];
