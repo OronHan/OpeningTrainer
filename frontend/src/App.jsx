@@ -12,44 +12,6 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-// Import pieces directly. 
-// Use ?url to ensure we get the asset URL string, avoiding component imports if svgr is active.
-import wP from './public/assets/wP.svg?url';
-import wN from './public/assets/wN.svg?url';
-import wB from './public/assets/wB.svg?url';
-import wR from './public/assets/wR.svg?url';
-import wQ from './public/assets/wQ.svg?url';
-import wK from './public/assets/wK.svg?url';
-import bP from './public/assets/bP.svg?url';
-import bN from './public/assets/bN.svg?url';
-import bB from './public/assets/bB.svg?url';
-import bR from './public/assets/bR.svg?url';
-import bQ from './public/assets/bQ.svg?url';
-import bK from './public/assets/bK.svg?url';
-
-const pieceImages = {
-  wP, wN, wB, wR, wQ, wK,
-  bP, bN, bB, bR, bQ, bK
-};
-
-const customPieces = (() => {
-  const pieces = ['wP', 'wN', 'wB', 'wR', 'wQ', 'wK', 'bP', 'bN', 'bB', 'bR', 'bQ', 'bK'];
-  const returnPieces = {};
-  pieces.forEach((p) => {
-    returnPieces[p] = ({ squareWidth }) => (
-      <div
-        style={{
-          width: squareWidth,
-          height: squareWidth,
-          backgroundImage: `url(${pieceImages[p]})`,
-          backgroundSize: "100%",
-        }}
-      />
-    );
-  });
-  return returnPieces;
-})();
-
 // Component to render the move list with variations in boxes
 const MoveList = ({ course, currentNodeId, onNavigate }) => {
   if (!course) return null;
@@ -257,7 +219,7 @@ const TestView = ({ variation, userColor, gameId, onExit }) => {
         <button onClick={onExit}>Exit Test</button>
       </div>
       <div className="training-board-wrapper">
-        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} customPieces={customPieces} />
+        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />
       </div>
       <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
         {feedback}
@@ -367,7 +329,7 @@ const TrainingView = ({ variation, userColor, gameId, onExit }) => {
         <button onClick={onExit}>Exit Training</button>
       </div>
       <div className="training-board-wrapper">
-        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} customPieces={customPieces} />
+        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />
       </div>
       <div className="training-feedback">
         {feedback}
@@ -466,7 +428,6 @@ const PracticeView = ({ gameId, userColor, onExit }) => {
           position={fen} 
           onPieceDrop={onDrop} 
           boardWidth={400}
-          customPieces={customPieces}
           boardOrientation={userColor}
         />
       </div>
@@ -562,7 +523,7 @@ const FixErrorsView = ({ gameId, userColor, onExit }) => {
         <button onClick={onExit}>Exit</button>
       </div>
       <div className="training-board-wrapper">
-        {!noErrors && <Chessboard position={fen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} customPieces={customPieces} />}
+        {!noErrors && <Chessboard position={fen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />}
       </div>
       <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
         {feedback}
@@ -1006,7 +967,6 @@ function App() {
                 boardWidth={560}
                 position={fen || "start"}
                 boardOrientation={orientation}
-                customPieces={customPieces}
                 onPieceDrop={onDrop}
                 onSquareClick={onSquareClick}
                 customSquareStyles={
