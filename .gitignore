@@ -1,27 +1,19 @@
-# Dependencies
-node_modules/
-venv/
-
 # Python
+venv/
 __pycache__/
-*.py[cod]
+*.pyc
 
-# Environment variables
-.env
+# Node.js
+node_modules/
+.DS_Store
 
-# Build outputs
+# Application Data - Do not commit user-generated data
+course.json
+progress.json
+scores/
+files/
+
+# Build artifacts
 dist/
 build/
-
-# System Files
-.DS_Store
-Thumbs.db
-
-# IDEs
-.vscode/
-.idea/
-
-# User Data (exclude user uploaded PGNs to keep repo clean)
-files/
-scores/
-course.json
+*.log
