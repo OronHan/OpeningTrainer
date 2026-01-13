@@ -14,17 +14,16 @@ const API_URL = getApiUrl();
 
 // Import pieces directly. 
 // Use ?url to ensure we get the asset URL string, avoiding component imports if svgr is active.
-// Use lowercase filenames for N, B, R to match the likely casing on the Linux server.
 import wP from './public/pieces/wP.svg?url';
-import wN from './public/pieces/wn.svg?url';
-import wB from './public/pieces/wb.svg?url';
-import wR from './public/pieces/wr.svg?url';
+import wN from './public/pieces/wN.svg?url';
+import wB from './public/pieces/wB.svg?url';
+import wR from './public/pieces/wR.svg?url';
 import wQ from './public/pieces/wQ.svg?url';
 import wK from './public/pieces/wK.svg?url';
 import bP from './public/pieces/bP.svg?url';
-import bN from './public/pieces/bn.svg?url';
-import bB from './public/pieces/bb.svg?url';
-import bR from './public/pieces/br.svg?url';
+import bN from './public/pieces/bN.svg?url';
+import bB from './public/pieces/bB.svg?url';
+import bR from './public/pieces/bR.svg?url';
 import bQ from './public/pieces/bQ.svg?url';
 import bK from './public/pieces/bK.svg?url';
 
