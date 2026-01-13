@@ -45,8 +45,6 @@ if not exist venv\Scripts\activate (
 echo [3/3] Installing dependencies...
 call venv\Scripts\activate
 pip install -r requirements.txt
-pip install python-multipart
-
 echo.
 echo Done! You can now run 'run.bat'.
 pause

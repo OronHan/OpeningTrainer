@@ -64,4 +64,7 @@ class NodeProgress(BaseModel):
     last_seen: Optional[str] = None
 
 # Resolve forward reference in SelectGameResponse
-SelectGameResponse.model_rebuild()
+try:
+    SelectGameResponse.model_rebuild()
+except AttributeError:
+    SelectGameResponse.update_forward_refs()

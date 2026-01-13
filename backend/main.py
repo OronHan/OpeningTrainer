@@ -72,6 +72,10 @@ def get_random_path(course, start_node_id):
         current = next_id
     return path
 
+@app.get("/")
+async def root():
+    return {"message": "Chess Opening Trainer API is running. Visit /docs for API documentation."}
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
