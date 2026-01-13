@@ -43,7 +43,7 @@ class GameListItem(BaseModel):
 class SelectGameResponse(BaseModel):
     status: str
     game: GameInfo
-    course: Course
+    course: 'Course'
 
 class CourseNode(BaseModel):
     node_id: str
@@ -62,3 +62,6 @@ class NodeProgress(BaseModel):
     seen: int = 0
     correct: int = 0
     last_seen: Optional[str] = None
+
+# Resolve forward reference in SelectGameResponse
+SelectGameResponse.model_rebuild()
