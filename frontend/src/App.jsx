@@ -3,23 +3,19 @@ import { Chessboard } from 'react-chessboard'
 
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://openingtrainer.onrender.com" : "http://127.0.0.1:8000");
 
-// Import pieces directly so the bundler can find them in src/public
-import wP from './public/pieces/wP.svg';
-import wN from './public/pieces/wN.svg';
-import wB from './public/pieces/wB.svg';
-import wR from './public/pieces/wR.svg';
-import wQ from './public/pieces/wQ.svg';
-import wK from './public/pieces/wK.svg';
-import bP from './public/pieces/bP.svg';
-import bN from './public/pieces/bN.svg';
-import bB from './public/pieces/bB.svg';
-import bR from './public/pieces/bR.svg';
-import bQ from './public/pieces/bQ.svg';
-import bK from './public/pieces/bK.svg';
-
 const pieceImages = {
-  wP, wN, wB, wR, wQ, wK,
-  bP, bN, bB, bR, bQ, bK
+  wP: new URL('./public/pieces/wP.svg', import.meta.url).href,
+  wN: new URL('./public/pieces/wN.svg', import.meta.url).href,
+  wB: new URL('./public/pieces/wB.svg', import.meta.url).href,
+  wR: new URL('./public/pieces/wR.svg', import.meta.url).href,
+  wQ: new URL('./public/pieces/wQ.svg', import.meta.url).href,
+  wK: new URL('./public/pieces/wK.svg', import.meta.url).href,
+  bP: new URL('./public/pieces/bP.svg', import.meta.url).href,
+  bN: new URL('./public/pieces/bN.svg', import.meta.url).href,
+  bB: new URL('./public/pieces/bB.svg', import.meta.url).href,
+  bR: new URL('./public/pieces/bR.svg', import.meta.url).href,
+  bQ: new URL('./public/pieces/bQ.svg', import.meta.url).href,
+  bK: new URL('./public/pieces/bK.svg', import.meta.url).href,
 };
 
 const customPieces = (() => {
@@ -247,7 +243,7 @@ const TestView = ({ variation, userColor, gameId, onExit }) => {
         <button onClick={onExit}>Exit Test</button>
       </div>
       <div className="training-board-wrapper">
-        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />
+        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} customPieces={customPieces} />
       </div>
       <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
         {feedback}
@@ -357,7 +353,7 @@ const TrainingView = ({ variation, userColor, gameId, onExit }) => {
         <button onClick={onExit}>Exit Training</button>
       </div>
       <div className="training-board-wrapper">
-        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />
+        <Chessboard position={currentFen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} customPieces={customPieces} />
       </div>
       <div className="training-feedback">
         {feedback}
@@ -455,8 +451,9 @@ const PracticeView = ({ gameId, userColor, onExit }) => {
         <Chessboard 
           position={fen} 
           onPieceDrop={onDrop} 
-          boardWidth={400} 
-          boardOrientation={userColor} 
+          boardWidth={400}
+          customPieces={customPieces}
+          boardOrientation={userColor}
         />
       </div>
       <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
@@ -551,7 +548,7 @@ const FixErrorsView = ({ gameId, userColor, onExit }) => {
         <button onClick={onExit}>Exit</button>
       </div>
       <div className="training-board-wrapper">
-        {!noErrors && <Chessboard position={fen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} />}
+        {!noErrors && <Chessboard position={fen} onPieceDrop={onDrop} boardWidth={400} boardOrientation={userColor} customPieces={customPieces} />}
       </div>
       <div className={`training-feedback ${isCorrect === true ? 'correct' : isCorrect === false ? 'incorrect' : ''}`}>
         {feedback}
