@@ -3,3 +3,4 @@ uvicorn
 python-chess
 pydantic
 pytest
+python-multipart
