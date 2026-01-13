@@ -12,20 +12,13 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-const pieceImages = {
-  wP: new URL('./public/pieces/wP.svg', import.meta.url).href,
-  wN: new URL('./public/pieces/wn.svg', import.meta.url).href,
-  wB: new URL('./public/pieces/wb.svg', import.meta.url).href,
-  wR: new URL('./public/pieces/wr.svg', import.meta.url).href,
-  wQ: new URL('./public/pieces/wQ.svg', import.meta.url).href,
-  wK: new URL('./public/pieces/wK.svg', import.meta.url).href,
-  bP: new URL('./public/pieces/bP.svg', import.meta.url).href,
-  bN: new URL('./public/pieces/bn.svg', import.meta.url).href,
-  bB: new URL('./public/pieces/bb.svg', import.meta.url).href,
-  bR: new URL('./public/pieces/br.svg', import.meta.url).href,
-  bQ: new URL('./public/pieces/bQ.svg', import.meta.url).href,
-  bK: new URL('./public/pieces/bK.svg', import.meta.url).href,
-};
+const pieceImports = import.meta.glob('./public/pieces/*.svg', { eager: true, import: 'default' });
+const pieceImages = {};
+for (const path in pieceImports) {
+  const fileName = path.split('/').pop().replace('.svg', '');
+  const key = fileName[0] + fileName[1].toUpperCase();
+  pieceImages[key] = pieceImports[path];
+}
 
 const customPieces = (() => {
   const pieces = ['wP', 'wN', 'wB', 'wR', 'wQ', 'wK', 'bP', 'bN', 'bB', 'bR', 'bQ', 'bK'];
