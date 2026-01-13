@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react'
 import { Chessboard } from 'react-chessboard'
 
 const getApiUrl = () => {
-  // This allows overriding with a .env file for specific testing scenarios
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
   // Check where the frontend is being served from
   if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-    return "http://127.0.0.1:8000";
+    return import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
   }
   // Default for production (e.g. https://webopeningtrainer.onrender.com)
   return "https://openingtrainer.onrender.com";
