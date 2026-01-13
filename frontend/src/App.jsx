@@ -12,22 +12,26 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-// Use glob to find all pieces dynamically. 
-// query: { url: true } ensures we get the asset URL string, avoiding component imports.
-const pieceImports = import.meta.glob('./public/pieces/*.svg', { 
-  eager: true, 
-  import: 'default',
-  query: { url: true }
-});
+// Import pieces directly. 
+// Use ?url to ensure we get the asset URL string, avoiding component imports if svgr is active.
+// Use lowercase filenames for N, B, R to match the likely casing on the Linux server.
+import wP from './public/pieces/wP.svg?url';
+import wN from './public/pieces/wn.svg?url';
+import wB from './public/pieces/wb.svg?url';
+import wR from './public/pieces/wr.svg?url';
+import wQ from './public/pieces/wQ.svg?url';
+import wK from './public/pieces/wK.svg?url';
+import bP from './public/pieces/bP.svg?url';
+import bN from './public/pieces/bn.svg?url';
+import bB from './public/pieces/bb.svg?url';
+import bR from './public/pieces/br.svg?url';
+import bQ from './public/pieces/bQ.svg?url';
+import bK from './public/pieces/bK.svg?url';
 
-const pieceImages = {};
-for (const path in pieceImports) {
-  const fileName = path.split('/').pop().replace(/\.svg$/i, '');
-  if (fileName.length === 2) {
-    const key = fileName[0] + fileName[1].toUpperCase();
-    pieceImages[key] = pieceImports[path];
-  }
-}
+const pieceImages = {
+  wP, wN, wB, wR, wQ, wK,
+  bP, bN, bB, bR, bQ, bK
+};
 
 const customPieces = (() => {
   const pieces = ['wP', 'wN', 'wB', 'wR', 'wQ', 'wK', 'bP', 'bN', 'bB', 'bR', 'bQ', 'bK'];
