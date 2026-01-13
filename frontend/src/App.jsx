@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Chessboard } from 'react-chessboard'
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 // Import pieces directly so the bundler can find them in src/public
 import wP from './public/pieces/wP.svg';
