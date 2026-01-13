@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Chessboard } from 'react-chessboard'
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://openingtrainer.onrender.com" : "http://127.0.0.1:8000");
 
 // Import pieces directly so the bundler can find them in src/public
 import wP from './public/pieces/wP.svg';
@@ -715,7 +715,7 @@ function App() {
       }
     } catch (e) {
       console.error("Health check failed:", e);
-      setFeedback("Backend is unreachable. Please ensure the server is running on port 8000.");
+      setFeedback(`Backend is unreachable. Attempted connection to: ${API_URL}`);
     }
   };
 
